@@ -2,25 +2,23 @@ using System;
 
 using Akka.Actor;
 
-using WinTail.Messages;
-
 
 namespace WinTail
 {
     /// <summary>
-    ///     Actor responsible for reading FROM the console.
-    ///     Also responsible for calling <see cref="ActorSystem.Shutdown" />.
+    /// Actor responsible for reading FROM the console.
+    /// Also responsible for calling <see cref="ActorSystem.Shutdown"/>.
     /// </summary>
     internal class ConsoleReaderActor : UntypedActor
     {
         public const string ExitCommand = "exit";
         public const string StartCommand = "start";
-        private readonly IActorRef _consoleWriterActor;
+        private readonly IActorRef _validationActor;
 
 
-        public ConsoleReaderActor(IActorRef consoleWriterActor)
+        public ConsoleReaderActor(IActorRef validationActor)
         {
-            _consoleWriterActor = consoleWriterActor;
+            _validationActor = validationActor;
         }
 
 
@@ -29,10 +27,6 @@ namespace WinTail
             if (message.Equals(StartCommand))
             {
                 DoPrintInstructions();
-            }
-            else if (message is InputError)
-            {
-                _consoleWriterActor.Tell(message as InputError);
             }
 
             GetAndValidateInput();
@@ -61,38 +55,21 @@ namespace WinTail
 
 
         /// <summary>
-        ///     Reads input from console, validates it, then signals appropriate response
-        ///     (continue processing, error, success, etc.).
+        /// Reads input from console, validates it, then signals appropriate response
+        /// (continue processing, error, success, etc.).
         /// </summary>
         private void GetAndValidateInput()
         {
             string message = Console.ReadLine();
-            if (string.IsNullOrEmpty(message))
+            if (!string.IsNullOrEmpty(message) && String.Equals(message, ExitCommand, StringComparison.OrdinalIgnoreCase))
             {
-                // signal that the user needs to supply an input, as previously
-                // received input was blank
-                Self.Tell(new NullInputError("No input received."));
-            }
-            else if (String.Equals(message, ExitCommand, StringComparison.OrdinalIgnoreCase))
-            {
-                // shut down the entire actor system (allows the process to exit)
+                // if user typed ExitCommand, shut down the entire actor system (allows the process to exit)
                 Context.System.Shutdown();
+                return;
             }
-            else
-            {
-                bool valid = IsValid(message);
-                if (valid)
-                {
-                    _consoleWriterActor.Tell(new InputSuccess("Thank you! Message was valid."));
 
-                    // continue reading messages from console
-                    _consoleWriterActor.Tell(new ContinueProcessing());
-                }
-                else
-                {
-                    Self.Tell(new ValidationError("Invalid: input had odd number of characters."));
-                }
-            }
+            // otherwise, just hand message off to validation actor (by telling its actor ref)
+            _validationActor.Tell(message);
         }
     }
 }
