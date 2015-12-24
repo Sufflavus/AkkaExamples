@@ -33,24 +33,9 @@ namespace WinTail
         }
 
 
-        /// <summary>
-        ///     Validates <see cref="message" />.
-        ///     Currently says messages are valid if contain even number of characters.
-        /// </summary>
-        /// <param name="message"></param>
-        /// <returns></returns>
-        private static bool IsValid(string message)
-        {
-            bool valid = message.Length % 2 == 0;
-            return valid;
-        }
-
-
         private void DoPrintInstructions()
         {
-            Console.WriteLine("Write whatever you want into the console!");
-            Console.WriteLine("Some entries will pass validation, and some won't...\n\n");
-            Console.WriteLine("Type 'exit' to quit this application at any time.\n");
+            Console.WriteLine("Please provide the URI of a log file on disk.\n");
         }
 
 
