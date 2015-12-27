@@ -43,7 +43,7 @@ namespace WinTail.Actors
                     _consoleWriterActor.Tell(new InputSuccess(string.Format("Starting processing for {0}", msg)));
 
                     // start coordinator
-                    Context.ActorSelection("akka://MyActorSystem/user/tailCoordinatorActor")
+                    Context.ActorSelection(ActorsSelectionPaths.TailCoordinatorActor)
                         .Tell(new StartTail(msg, _consoleWriterActor));
                 }
                 else

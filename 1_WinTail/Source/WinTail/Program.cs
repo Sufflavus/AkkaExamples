@@ -7,9 +7,6 @@ using WinTail.Actors;
 
 namespace WinTail
 {
-
-    #region Program
-
     internal class Program
     {
         public static ActorSystem MyActorSystem;
@@ -22,16 +19,16 @@ namespace WinTail
 
             // make actors
             Props consoleWriterProps = Props.Create<ConsoleWriterActor>();
-            IActorRef consoleWriterActor = MyActorSystem.ActorOf(consoleWriterProps, "consoleWriterActor");
+            IActorRef consoleWriterActor = MyActorSystem.ActorOf(consoleWriterProps, ActorsNames.ConsoleWriterActor);
 
             Props tailCoordinatorProps = Props.Create(() => new TailCoordinatorActor());
-            IActorRef tailCoordinatorActor = MyActorSystem.ActorOf(tailCoordinatorProps, "tailCoordinatorActor");
+            IActorRef tailCoordinatorActor = MyActorSystem.ActorOf(tailCoordinatorProps, ActorsNames.TailCoordinatorActor);
 
             Props validationActorProps = Props.Create(() => new FileValidatorActor(consoleWriterActor));
-            IActorRef validationActor = MyActorSystem.ActorOf(validationActorProps, "validationActor");
+            IActorRef validationActor = MyActorSystem.ActorOf(validationActorProps, ActorsNames.ValidationActor);
 
             Props consoleReaderProps = Props.Create<ConsoleReaderActor>();
-            IActorRef consoleReaderActor = MyActorSystem.ActorOf(consoleReaderProps, "consoleReaderActor");
+            IActorRef consoleReaderActor = MyActorSystem.ActorOf(consoleReaderProps, ActorsNames.ConsoleReaderActor);
 
             // tell console reader to begin
             consoleReaderActor.Tell(ConsoleReaderActor.StartCommand);
@@ -40,6 +37,4 @@ namespace WinTail
             MyActorSystem.AwaitTermination();
         }
     }
-
-    #endregion
 }

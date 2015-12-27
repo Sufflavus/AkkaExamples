@@ -49,6 +49,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actors\ActorsNames.cs" />
+    <Compile Include="Actors\ActorsSelectionPaths.cs" />
     <Compile Include="Actors\ConsoleReaderActor.cs" />
     <Compile Include="Actors\ConsoleWriterActor.cs" />
     <Compile Include="FileObserver.cs" />

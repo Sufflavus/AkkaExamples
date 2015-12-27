@@ -47,7 +47,7 @@ namespace WinTail.Actors
             }
 
             // otherwise, just send the message off for validation
-            Context.ActorSelection("akka://MyActorSystem/user/validationActor").Tell(message);
+            Context.ActorSelection(ActorsSelectionPaths.ValidationActor).Tell(message);
         }
     }
 }
