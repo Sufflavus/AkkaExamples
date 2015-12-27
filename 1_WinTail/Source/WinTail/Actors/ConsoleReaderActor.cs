@@ -3,16 +3,17 @@ using System;
 using Akka.Actor;
 
 
-namespace WinTail
+namespace WinTail.Actors
 {
     /// <summary>
     /// Actor responsible for reading FROM the console.
     /// Also responsible for calling <see cref="ActorSystem.Shutdown"/>.
     /// </summary>
-    internal class ConsoleReaderActor : UntypedActor
+    public sealed class ConsoleReaderActor : UntypedActor
     {
         public const string ExitCommand = "exit";
         public const string StartCommand = "start";
+
 
         protected override void OnReceive(object message)
         {

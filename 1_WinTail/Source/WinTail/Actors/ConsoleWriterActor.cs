@@ -5,13 +5,13 @@ using Akka.Actor;
 using WinTail.Messages;
 
 
-namespace WinTail
+namespace WinTail.Actors
 {
     /// <summary>
     ///     Actor responsible for serializing message writes to the console.
     ///     (write one message at a time, champ :)
     /// </summary>
-    internal class ConsoleWriterActor : UntypedActor
+    public sealed class ConsoleWriterActor : UntypedActor
     {
         protected override void OnReceive(object message)
         {

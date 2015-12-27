@@ -2,8 +2,10 @@
 
 using Akka.Actor;
 
+using WinTail.MessageType;
 
-namespace WinTail
+
+namespace WinTail.Actors
 {
     public class TailCoordinatorActor : UntypedActor
     {
@@ -40,39 +42,6 @@ namespace WinTail
                         return Directive.Restart; //In all other cases, just restart the failing actor
                     }
                 });
-        }
-
-
-        /// <summary>
-        /// Start tailing the file at user-specified path.
-        /// </summary>
-        public class StartTail
-        {
-            public StartTail(string filePath, IActorRef reporterActor)
-            {
-                FilePath = filePath;
-                ReporterActor = reporterActor;
-            }
-
-
-            public string FilePath { get; private set; }
-
-            public IActorRef ReporterActor { get; private set; }
-        }
-
-
-        /// <summary>
-        /// Stop tailing the file at user-specified path.
-        /// </summary>
-        public class StopTail
-        {
-            public StopTail(string filePath)
-            {
-                FilePath = filePath;
-            }
-
-
-            public string FilePath { get; private set; }
         }
     }
 }

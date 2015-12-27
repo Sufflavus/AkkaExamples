@@ -3,13 +3,16 @@ using System.IO;
 
 using Akka.Actor;
 
+using WinTail.Actors;
+using WinTail.MessageType;
+
 
 namespace WinTail
 {
     /// <summary>
     /// Turns <see cref="FileSystemWatcher"/> events about a specific file into messages for <see cref="TailActor"/>.
     /// </summary>
-    public class FileObserver : IDisposable
+    public sealed class FileObserver : IDisposable
     {
         private readonly string _absoluteFilePath;
         private readonly string _fileDir;
@@ -57,7 +60,7 @@ namespace WinTail
         {
             if (e.ChangeType == WatcherChangeTypes.Changed)
             {
-                _tailActor.Tell(new TailActor.FileWrite(e.Name), ActorRefs.NoSender);
+                _tailActor.Tell(new FileWrite(e.Name), ActorRefs.NoSender);
             }
         }
 
@@ -69,7 +72,7 @@ namespace WinTail
         /// <param name="e"></param>
         private void OnFileError(object sender, ErrorEventArgs e)
         {
-            _tailActor.Tell(new TailActor.FileError(_fileNameOnly, e.GetException().Message), ActorRefs.NoSender);
+            _tailActor.Tell(new FileError(_fileNameOnly, e.GetException().Message), ActorRefs.NoSender);
         }
     }
 }

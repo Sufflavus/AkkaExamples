@@ -3,10 +3,11 @@ using System.IO;
 
 using Akka.Actor;
 
+using WinTail.MessageType;
 using WinTail.Messages;
 
 
-namespace WinTail
+namespace WinTail.Actors
 {
     /// <summary>
     /// Actor that validates user input and signals result to others.
@@ -43,7 +44,7 @@ namespace WinTail
 
                     // start coordinator
                     Context.ActorSelection("akka://MyActorSystem/user/tailCoordinatorActor")
-                        .Tell(new TailCoordinatorActor.StartTail(msg, _consoleWriterActor));
+                        .Tell(new StartTail(msg, _consoleWriterActor));
                 }
                 else
                 {
