@@ -1,5 +1,8 @@
 ﻿using System.Windows.Forms;
 using Akka.Actor;
+using ChartApp.Messages;
+using ChartApp.Messages.ButtonMessages;
+using ChartApp.Messages.CoordinatorMessages;
 
 namespace ChartApp.Actors
 {
@@ -29,7 +32,7 @@ namespace ChartApp.Actors
                 // toggle is currently on
                 // stop watching this counter
 
-                _coordinatorActor.Tell(new PerformanceCounterCoordinatorActor.Unwatch(_myCounterType));
+                _coordinatorActor.Tell(new Unwatch(_myCounterType));
                 FlipToggle();
             }
             else if (message is Toggle && !_isToggledOn)
@@ -37,7 +40,7 @@ namespace ChartApp.Actors
                 // toggle is currently off
                 // start watching this counter
 
-                _coordinatorActor.Tell(new PerformanceCounterCoordinatorActor.Watch(_myCounterType));
+                _coordinatorActor.Tell(new Watch(_myCounterType));
                 FlipToggle();
             }
             else
@@ -54,14 +57,6 @@ namespace ChartApp.Actors
             // change the text of the button
             _myButton.Text = string.Format("{0} ({1})", _myCounterType.ToString().ToUpperInvariant(),
                                            _isToggledOn ? "ON" : "OFF");
-        }
-
-        /// <summary>
-        ///     Toggles this button on or off and sends an appropriate messages
-        ///     to the <see cref="PerformanceCounterCoordinatorActor" />
-        /// </summary>
-        public class Toggle
-        {
         }
     }
 }

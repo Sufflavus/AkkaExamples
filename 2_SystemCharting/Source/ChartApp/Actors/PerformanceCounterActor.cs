@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Akka.Actor;
+using ChartApp.Messages;
+using ChartApp.Messages.PerformanceCounterMessages;
 
 namespace ChartApp.Actors
 {

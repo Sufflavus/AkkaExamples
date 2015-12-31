@@ -4,6 +4,8 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using Akka.Actor;
+using ChartApp.Messages;
+using ChartApp.Messages.ChartingMessages;
 
 namespace ChartApp.Actors
 {
@@ -35,6 +37,8 @@ namespace ChartApp.Actors
             _pauseButton = pauseButton;
             Charting();
         }
+
+        public IStash Stash { get; set; }
 
         private void Charting()
         {
@@ -150,16 +154,15 @@ namespace ChartApp.Actors
 
         private void SetChartBoundaries()
         {
-            double maxAxisX, maxAxisY, minAxisX, minAxisY = 0.0d;
             HashSet<DataPoint> allPoints = _seriesIndex.Values.Aggregate(new HashSet<DataPoint>(),
                                                                          (set, series) =>
                                                                          new HashSet<DataPoint>(set.Concat(series.Points)));
             List<double> yValues = allPoints.Aggregate(new List<double>(),
                                                        (list, point) => list.Concat(point.YValues).ToList());
-            maxAxisX = xPosCounter;
-            minAxisX = xPosCounter - MaxPoints;
-            maxAxisY = yValues.Count > 0 ? Math.Ceiling(yValues.Max()) : 1.0d;
-            minAxisY = yValues.Count > 0 ? Math.Floor(yValues.Min()) : 0.0d;
+            double maxAxisX = xPosCounter;
+            double minAxisX = xPosCounter - MaxPoints;
+            double maxAxisY = yValues.Count > 0 ? Math.Ceiling(yValues.Max()) : 1.0d;
+            double minAxisY = yValues.Count > 0 ? Math.Floor(yValues.Min()) : 0.0d;
             if (allPoints.Count > 2)
             {
                 ChartArea area = _chart.ChartAreas[0];
@@ -174,50 +177,5 @@ namespace ChartApp.Actors
         {
             _pauseButton.Text = string.Format("{0}", !paused ? "PAUSE ||" : "RESUME ->");
         }
-
-        /// <summary>
-        ///     Add a new <see cref="Series" /> to the chart
-        /// </summary>
-        public class AddSeries
-        {
-            public AddSeries(Series series)
-            {
-                Series = series;
-            }
-
-            public Series Series { get; set; }
-        }
-
-        public class InitializeChart
-        {
-            public InitializeChart(Dictionary<string, Series> initialSeries)
-            {
-                InitialSeries = initialSeries;
-            }
-
-            public Dictionary<string, Series> InitialSeries { get; private set; }
-        }
-
-        /// <summary>
-        ///     Remove an existing <see cref="Series" /> from the chart
-        /// </summary>
-        public class RemoveSeries
-        {
-            public RemoveSeries(string seriesName)
-            {
-                SeriesName = seriesName;
-            }
-
-            public string SeriesName { get; private set; }
-        }
-
-        /// <summary>
-        ///     Toggles the pausing between charts
-        /// </summary>
-        public class TogglePause
-        {
-        }
-
-        public IStash Stash { get; set; }
     }
 }

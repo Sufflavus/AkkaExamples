@@ -4,6 +4,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms.DataVisualization.Charting;
 using Akka.Actor;
+using ChartApp.Messages;
+using ChartApp.Messages.ChartingMessages;
+using ChartApp.Messages.CoordinatorMessages;
+using ChartApp.Messages.PerformanceCounterMessages;
 
 namespace ChartApp.Actors
 {
@@ -86,7 +90,7 @@ namespace ChartApp.Actors
                     }
 
                     // register this series with the ChartingActor
-                    _chartingActor.Tell(new ChartingActor.AddSeries(CounterSeries[watch.Counter]()));
+                    _chartingActor.Tell(new AddSeries(CounterSeries[watch.Counter]()));
 
                     // tell the counter actor to begin publishing its statistics to the _chartingActor
                     _counterActors[watch.Counter].Tell(new SubscribeCounter(watch.Counter, _chartingActor));
@@ -103,34 +107,8 @@ namespace ChartApp.Actors
                     _counterActors[unwatch.Counter].Tell(new UnsubscribeCounter(unwatch.Counter, _chartingActor));
 
                     // remove this series from the ChartingActor
-                    _chartingActor.Tell(new ChartingActor.RemoveSeries(unwatch.Counter.ToString()));
+                    _chartingActor.Tell(new RemoveSeries(unwatch.Counter.ToString()));
                 });
-        }
-
-        /// <summary>
-        ///     Unsubscribe the <see cref="ChartingActor" /> to updates for <see cref="Counter" />.
-        /// </summary>
-        public class Unwatch
-        {
-            public Unwatch(CounterType counter)
-            {
-                Counter = counter;
-            }
-
-            public CounterType Counter { get; set; }
-        }
-
-        /// <summary>
-        ///     Subscribe the <see cref="ChartingActor" /> to updates for <see cref="Counter" />.
-        /// </summary>
-        public class Watch
-        {
-            public Watch(CounterType counter)
-            {
-                Counter = counter;
-            }
-
-            public CounterType Counter { get; set; }
         }
     }
 }
