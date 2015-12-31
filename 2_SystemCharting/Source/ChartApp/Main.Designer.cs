@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea2 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend2 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series2 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.sysChart = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.btnCpu = new System.Windows.Forms.Button();
             this.btnMemory = new System.Windows.Forms.Button();
@@ -41,24 +41,24 @@
             // 
             // sysChart
             // 
-            chartArea2.Name = "ChartArea1";
-            this.sysChart.ChartAreas.Add(chartArea2);
+            chartArea3.Name = "ChartArea1";
+            this.sysChart.ChartAreas.Add(chartArea3);
             this.sysChart.Dock = System.Windows.Forms.DockStyle.Fill;
-            legend2.Name = "Legend1";
-            this.sysChart.Legends.Add(legend2);
+            legend3.Name = "Legend1";
+            this.sysChart.Legends.Add(legend3);
             this.sysChart.Location = new System.Drawing.Point(0, 0);
             this.sysChart.Name = "sysChart";
-            series2.ChartArea = "ChartArea1";
-            series2.Legend = "Legend1";
-            series2.Name = "Series1";
-            this.sysChart.Series.Add(series2);
+            series3.ChartArea = "ChartArea1";
+            series3.Legend = "Legend1";
+            series3.Name = "Series1";
+            this.sysChart.Series.Add(series3);
             this.sysChart.Size = new System.Drawing.Size(684, 446);
             this.sysChart.TabIndex = 0;
             this.sysChart.Text = "sysChart";
             // 
             // btnCpu
             // 
-            this.btnCpu.Location = new System.Drawing.Point(581, 299);
+            this.btnCpu.Location = new System.Drawing.Point(581, 309);
             this.btnCpu.Name = "btnCpu";
             this.btnCpu.Size = new System.Drawing.Size(75, 23);
             this.btnCpu.TabIndex = 1;
@@ -70,7 +70,7 @@
             // 
             this.btnMemory.Location = new System.Drawing.Point(581, 338);
             this.btnMemory.Name = "btnMemory";
-            this.btnMemory.Size = new System.Drawing.Size(75, 23);
+            this.btnMemory.Size = new System.Drawing.Size(75, 36);
             this.btnMemory.TabIndex = 2;
             this.btnMemory.Text = "MEMORY (OFF)";
             this.btnMemory.UseVisualStyleBackColor = true;
