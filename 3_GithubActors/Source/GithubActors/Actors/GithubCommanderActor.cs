@@ -1,14 +1,14 @@
 ﻿using System;
-using System.Linq;
 using Akka.Actor;
 using Akka.Routing;
+
 
 namespace GithubActors.Actors
 {
     /// <summary>
     /// Top-level actor responsible for coordinating and launching repo-processing jobs
     /// </summary>
-    public class GithubCommanderActor : ReceiveActor
+    public class GithubCommanderActor : ReceiveActor, IWithUnboundedStash
     {
         #region Message classes
 
@@ -47,34 +47,80 @@ namespace GithubActors.Actors
         private IActorRef _coordinator;
         private IActorRef _canAcceptJobSender;
 
+        private int _pendingJobReplies;
+
+
         public GithubCommanderActor()
+        {
+            Ready();
+        }
+
+
+        private void Ready()
         {
             Receive<CanAcceptJob>(job =>
             {
-                _canAcceptJobSender = Sender;
                 _coordinator.Tell(job);
+                BecomeAsking();
             });
+        }
+
+
+        private void BecomeAsking()
+        {
+            _canAcceptJobSender = Sender;
+            _pendingJobReplies = 3; //the number of routees
+            Become(Asking);
+        }
+
+
+        private void Asking()
+        {
+            // stash any subsequent requests
+            Receive<CanAcceptJob>(job => Stash.Stash());
 
             Receive<UnableToAcceptJob>(job =>
             {
-                _canAcceptJobSender.Tell(job);
+                _pendingJobReplies--;
+                if (_pendingJobReplies == 0)
+                {
+                    _canAcceptJobSender.Tell(job);
+                    BecomeReady();
+                }
             });
 
             Receive<AbleToAcceptJob>(job =>
             {
                 _canAcceptJobSender.Tell(job);
 
-                //start processing messages
-                _coordinator.Tell(new GithubCoordinatorActor.BeginJob(job.Repo));
+                // start processing messages
+                Sender.Tell(new GithubCoordinatorActor.BeginJob(job.Repo));
 
-                //launch the new window to view results of the processing
+                // launch the new window to view results of the processing
                 Context.ActorSelection(ActorPaths.MainFormActor.Path).Tell(new MainFormActor.LaunchRepoResultsWindow(job.Repo, Sender));
+
+                BecomeReady();
             });
         }
 
+
+        private void BecomeReady()
+        {
+            Become(Ready);
+            Stash.UnstashAll();
+        }
+        
         protected override void PreStart()
         {
-            _coordinator = Context.ActorOf(Props.Create(() => new GithubCoordinatorActor()), ActorPaths.GithubCoordinatorActor.Name);
+            // create three GithubCoordinatorActor instances
+            var c1 = Context.ActorOf(Props.Create(() => new GithubCoordinatorActor()), ActorPaths.GithubAuthenticatorActor.Name + "1");
+            var c2 = Context.ActorOf(Props.Create(() => new GithubCoordinatorActor()), ActorPaths.GithubAuthenticatorActor.Name + "2");
+            var c3 = Context.ActorOf(Props.Create(() => new GithubCoordinatorActor()), ActorPaths.GithubAuthenticatorActor.Name + "3");
+
+            // create a broadcast router who will ask all if them if they're available for work
+            _coordinator = Context.ActorOf(Props.Empty.WithRouter(new BroadcastGroup(ActorPaths.GithubCoordinatorActor.Path + "1",
+                ActorPaths.GithubCoordinatorActor.Path + "2", ActorPaths.GithubCoordinatorActor.Path + "3")));
+
             base.PreStart();
         }
 
@@ -84,5 +130,8 @@ namespace GithubActors.Actors
             _coordinator.Tell(PoisonPill.Instance);
             base.PreRestart(reason, message);
         }
+
+
+        public IStash Stash { get; set; }
     }
 }
