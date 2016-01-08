@@ -7,3 +7,5 @@ Here's what the final output from the application looks like::
 
 A high-level overview of working system:
 ![High-level overview](Diagrams/system_overview.png)
+
+*Images from [Akka.NET Bootcamp](https://github.com/petabridge/akka-bootcamp)*
