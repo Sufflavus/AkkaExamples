@@ -1,12 +1,14 @@
 ﻿using System;
-using System.Configuration;
 using System.Windows.Forms;
+
 using Akka.Actor;
-using Akka.Configuration.Hocon;
+
+using GithubActors.Views;
+
 
 namespace GithubActors
 {
-    static class Program
+    internal static class Program
     {
         /// <summary>
         /// ActorSystem we'llbe using to collect and process data
@@ -14,11 +16,12 @@ namespace GithubActors
         /// </summary>
         public static ActorSystem GithubActors;
 
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        private static void Main()
         {
             GithubActors = ActorSystem.Create("GithubActors");
 

@@ -1,7 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+
 using Akka.Actor;
+
+using GithubActors.Data;
+using GithubActors.Messages.GithubCoordinator;
+using GithubActors.Views;
+
+using Octokit;
+
 
 namespace GithubActors.Actors
 {
@@ -11,11 +20,11 @@ namespace GithubActors.Actors
     /// </summary>
     public class RepoResultsActor : ReceiveActor
     {
-        private DataGridView _userDg;
-        private ToolStripStatusLabel _statusLabel;
-        private ToolStripProgressBar _progressBar;
+        private readonly bool _hasSetProgress = false;
+        private readonly ToolStripProgressBar _progressBar;
+        private readonly ToolStripStatusLabel _statusLabel;
+        private readonly DataGridView _userDg;
 
-        private bool _hasSetProgress = false;
 
         public RepoResultsActor(DataGridView userDg, ToolStripStatusLabel statusLabel, ToolStripProgressBar progressBar)
         {
@@ -24,6 +33,7 @@ namespace GithubActors.Actors
             _progressBar = progressBar;
             InitialReceives();
         }
+
 
         private void InitialReceives()
         {
@@ -49,9 +59,9 @@ namespace GithubActors.Actors
             //user update
             Receive<IEnumerable<SimilarRepo>>(repos =>
             {
-                foreach (var similarRepo in repos)
+                foreach (SimilarRepo similarRepo in repos)
                 {
-                    var repo = similarRepo.Repo;
+                    Repository repo = similarRepo.Repo;
                     var row = new DataGridViewRow();
                     row.CreateCells(_userDg);
                     row.Cells[0].Value = repo.Owner.Login;
@@ -66,7 +76,7 @@ namespace GithubActors.Actors
             });
 
             //critical failure, like not being able to connect to Github
-            Receive<GithubCoordinatorActor.JobFailed>(failed =>
+            Receive<JobFailed>(failed =>
             {
                 _progressBar.Visible = true;
                 _progressBar.ForeColor = Color.Red;

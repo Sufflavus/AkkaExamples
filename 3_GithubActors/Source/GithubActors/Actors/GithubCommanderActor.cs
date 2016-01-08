@@ -1,7 +1,13 @@
 ﻿using System;
 using System.Linq;
+
 using Akka.Actor;
 using Akka.Routing;
+
+using GithubActors.Data;
+using GithubActors.Messages.GithubCommander;
+using GithubActors.Messages.GithubCoordinator;
+using GithubActors.Messages.MainForm;
 
 
 namespace GithubActors.Actors
@@ -11,42 +17,8 @@ namespace GithubActors.Actors
     /// </summary>
     public class GithubCommanderActor : ReceiveActor, IWithUnboundedStash
     {
-        #region Message classes
-
-        public class CanAcceptJob
-        {
-            public CanAcceptJob(RepoKey repo)
-            {
-                Repo = repo;
-            }
-
-            public RepoKey Repo { get; private set; }
-        }
-
-        public class AbleToAcceptJob
-        {
-            public AbleToAcceptJob(RepoKey repo)
-            {
-                Repo = repo;
-            }
-
-            public RepoKey Repo { get; private set; }
-        }
-
-        public class UnableToAcceptJob
-        {
-            public UnableToAcceptJob(RepoKey repo)
-            {
-                Repo = repo;
-            }
-
-            public RepoKey Repo { get; private set; }
-        }
-
-        #endregion
-
-        private IActorRef _coordinator;
         private IActorRef _canAcceptJobSender;
+        private IActorRef _coordinator;
 
         private int _pendingJobReplies;
         private RepoKey _repoJob;
@@ -58,27 +30,24 @@ namespace GithubActors.Actors
         }
 
 
-        private void Ready()
+        public IStash Stash { get; set; }
+
+
+        protected override void PreRestart(Exception reason, object message)
         {
-            Receive<CanAcceptJob>(job =>
-            {
-                _coordinator.Tell(job);
-                _repoJob = job.Repo;
-                BecomeAsking();
-            });
+            //kill off the old coordinator so we can recreate it from scratch
+            _coordinator.Tell(PoisonPill.Instance);
+            base.PreRestart(reason, message);
         }
 
 
-        private void BecomeAsking()
+        protected override void PreStart()
         {
-            _canAcceptJobSender = Sender;
+            // create a broadcast router who will ask all if them if they're available for work
+            _coordinator = Context.ActorOf(Props.Create(() => new GithubCoordinatorActor()).WithRouter(FromConfig.Instance),
+                ActorPaths.GithubCoordinatorActor.Name);
 
-            // block, but ask the router for the number of routees. Avoids magic numbers.
-            _pendingJobReplies = _coordinator.Ask<Routees>(new GetRoutees()).Result.Members.Count();
-            Become(Asking);
-
-            // send ourselves a ReceiveTimeout message if no message within 3 seonds
-            Context.SetReceiveTimeout(TimeSpan.FromSeconds(3));
+            base.PreStart();
         }
 
 
@@ -102,10 +71,10 @@ namespace GithubActors.Actors
                 _canAcceptJobSender.Tell(job);
 
                 // start processing messages
-                Sender.Tell(new GithubCoordinatorActor.BeginJob(job.Repo));
+                Sender.Tell(new BeginJob(job.Repo));
 
                 // launch the new window to view results of the processing
-                Context.ActorSelection(ActorPaths.MainFormActor.Path).Tell(new MainFormActor.LaunchRepoResultsWindow(job.Repo, Sender));
+                Context.ActorSelection(ActorPaths.MainFormActor.Path).Tell(new LaunchRepoResultsWindow(job.Repo, Sender));
 
                 BecomeReady();
             });
@@ -118,6 +87,19 @@ namespace GithubActors.Actors
         }
 
 
+        private void BecomeAsking()
+        {
+            _canAcceptJobSender = Sender;
+
+            // block, but ask the router for the number of routees. Avoids magic numbers.
+            _pendingJobReplies = _coordinator.Ask<Routees>(new GetRoutees()).Result.Members.Count();
+            Become(Asking);
+
+            // send ourselves a ReceiveTimeout message if no message within 3 seonds
+            Context.SetReceiveTimeout(TimeSpan.FromSeconds(3));
+        }
+
+
         private void BecomeReady()
         {
             Become(Ready);
@@ -126,24 +108,16 @@ namespace GithubActors.Actors
             // cancel ReceiveTimeout
             Context.SetReceiveTimeout(null);
         }
-        
-        protected override void PreStart()
+
+
+        private void Ready()
         {
-            // create a broadcast router who will ask all if them if they're available for work
-            _coordinator = Context.ActorOf(Props.Create(() => new GithubCoordinatorActor()).WithRouter(FromConfig.Instance), 
-                ActorPaths.GithubCoordinatorActor.Name);
-
-            base.PreStart();
+            Receive<CanAcceptJob>(job =>
+            {
+                _coordinator.Tell(job);
+                _repoJob = job.Repo;
+                BecomeAsking();
+            });
         }
-
-        protected override void PreRestart(Exception reason, object message)
-        {
-            //kill off the old coordinator so we can recreate it from scratch
-            _coordinator.Tell(PoisonPill.Instance);
-            base.PreRestart(reason, message);
-        }
-
-
-        public IStash Stash { get; set; }
     }
 }

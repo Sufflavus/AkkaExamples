@@ -1,6 +1,15 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Windows.Forms;
+
 using Akka.Actor;
+
+using GithubActors.Messages.GithubCommander;
+using GithubActors.Messages.GithubRepositoryAnalysis;
+using GithubActors.Messages.GithubValidator;
+using GithubActors.Messages.MainForm;
+using GithubActors.Views;
+
 
 namespace GithubActors.Actors
 {
@@ -10,24 +19,8 @@ namespace GithubActors.Actors
     /// </summary>
     public class MainFormActor : ReceiveActor, IWithUnboundedStash
     {
-        #region Messages
-
-        public class LaunchRepoResultsWindow
-        {
-            public LaunchRepoResultsWindow(RepoKey repo, IActorRef coordinator)
-            {
-                Repo = repo;
-                Coordinator = coordinator;
-            }
-
-            public RepoKey Repo { get; private set; }
-
-            public IActorRef Coordinator { get; private set; }
-        }
-
-        #endregion
-
         private readonly Label _validationLabel;
+
 
         public MainFormActor(Label validationLabel)
         {
@@ -35,24 +28,9 @@ namespace GithubActors.Actors
             Ready();
         }
 
-        /// <summary>
-        /// State for when we're able to accept new jobs
-        /// </summary>
-        private void Ready()
-        {
-            Receive<ProcessRepo>(repo =>
-            {
-                Context.ActorSelection(ActorPaths.GithubValidatorActor.Path).Tell(new GithubValidatorActor.ValidateRepo(repo.RepoUri));
-                BecomeBusy(repo.RepoUri);
-            });
 
-            //launch the window
-            Receive<LaunchRepoResultsWindow>(window =>
-            {
-                var form = new RepoResultsForm(window.Coordinator, window.Repo);
-                form.Show();
-            });
-        }
+        public IStash Stash { get; set; }
+
 
         /// <summary>
         /// Make any necessary URI updates, then switch our state to busy
@@ -65,20 +43,6 @@ namespace GithubActors.Actors
             Become(Busy);
         }
 
-        /// <summary>
-        /// State for when we're currently processing a job
-        /// </summary>
-        private void Busy()
-        {
-            Receive<GithubValidatorActor.RepoIsValid>(valid => BecomeReady("Valid!"));
-            Receive<GithubValidatorActor.InvalidRepo>(invalid => BecomeReady(invalid.Reason, false));
-            //yes
-            Receive<GithubCommanderActor.UnableToAcceptJob>(job => BecomeReady(string.Format("{0}/{1} is a valid repo, but system can't accept additional jobs", job.Repo.Owner, job.Repo.Repo), false));
-
-            //no
-            Receive<GithubCommanderActor.AbleToAcceptJob>(job => BecomeReady(string.Format("{0}/{1} is a valid repo - starting job!", job.Repo.Owner, job.Repo.Repo)));
-            Receive<LaunchRepoResultsWindow>(window => Stash.Stash());
-        }
 
         private void BecomeReady(string message, bool isValid = true)
         {
@@ -88,6 +52,40 @@ namespace GithubActors.Actors
             Become(Ready);
         }
 
-        public IStash Stash { get; set; }
+
+        /// <summary>
+        /// State for when we're currently processing a job
+        /// </summary>
+        private void Busy()
+        {
+            Receive<RepoIsValid>(valid => BecomeReady("Valid!"));
+            Receive<InvalidRepo>(invalid => BecomeReady(invalid.Reason, false));
+            //yes
+            Receive<UnableToAcceptJob>(job => BecomeReady(string.Format("{0}/{1} is a valid repo, but system can't accept additional jobs", job.Repo.Owner, job.Repo.Repo), false));
+
+            //no
+            Receive<AbleToAcceptJob>(job => BecomeReady(string.Format("{0}/{1} is a valid repo - starting job!", job.Repo.Owner, job.Repo.Repo)));
+            Receive<LaunchRepoResultsWindow>(window => Stash.Stash());
+        }
+
+
+        /// <summary>
+        /// State for when we're able to accept new jobs
+        /// </summary>
+        private void Ready()
+        {
+            Receive<ProcessRepo>(repo =>
+            {
+                Context.ActorSelection(ActorPaths.GithubValidatorActor.Path).Tell(new ValidateRepo(repo.RepoUri));
+                BecomeBusy(repo.RepoUri);
+            });
+
+            //launch the window
+            Receive<LaunchRepoResultsWindow>(window =>
+            {
+                var form = new RepoResultsForm(window.Coordinator, window.Repo);
+                form.Show();
+            });
+        }
     }
 }

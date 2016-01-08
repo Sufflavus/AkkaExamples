@@ -1,4 +1,7 @@
-﻿namespace GithubActors
+﻿using System;
+
+
+namespace GithubActors.Views
 {
     partial class LauncherForm
     {

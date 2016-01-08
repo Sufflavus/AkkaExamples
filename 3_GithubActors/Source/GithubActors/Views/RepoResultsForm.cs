@@ -1,8 +1,14 @@
-﻿using System.Windows.Forms;
-using Akka.Actor;
-using GithubActors.Actors;
+﻿using System;
+using System.Windows.Forms;
 
-namespace GithubActors
+using Akka.Actor;
+
+using GithubActors.Actors;
+using GithubActors.Data;
+using GithubActors.Messages.GithubCoordinator;
+
+
+namespace GithubActors.Views
 {
     public partial class RepoResultsForm : Form
     {
@@ -27,7 +33,7 @@ namespace GithubActors
             Text = string.Format("Repos Similar to {0} / {1}", _repo.Owner, _repo.Repo);
 
             //start subscribing to updates
-            _githubCoordinator.Tell(new GithubCoordinatorActor.SubscribeToProgressUpdates(_formActor));
+            _githubCoordinator.Tell(new SubscribeToProgressUpdates(_formActor));
         }
 
         private void RepoResultsForm_FormClosing(object sender, FormClosingEventArgs e)

@@ -58,41 +58,64 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\ActorMetaData.cs" />
     <Compile Include="ActorPaths.cs" />
     <Compile Include="Actors\GithubAuthenticationActor.cs" />
     <Compile Include="Actors\GithubCommanderActor.cs" />
     <Compile Include="Actors\GithubCoordinatorActor.cs" />
     <Compile Include="Actors\RepoResultsActor.cs" />
-    <Compile Include="GithubAuth.cs">
+    <Compile Include="Views\GithubAuth.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="GithubAuth.Designer.cs">
+    <Compile Include="Views\GithubAuth.Designer.cs">
       <DependentUpon>GithubAuth.cs</DependentUpon>
     </Compile>
-    <Compile Include="GithubProgressStats.cs" />
+    <Compile Include="Data\GithubProgressStats.cs" />
     <Compile Include="Actors\GithubValidatorActor.cs" />
     <Compile Include="Actors\GithubWorkerActor.cs" />
     <Compile Include="Actors\MainFormActor.cs" />
-    <Compile Include="Messages.cs" />
+    <Compile Include="Data\RepoKey.cs" />
     <Compile Include="GithubClientFactory.cs" />
-    <Compile Include="LauncherForm.cs">
+    <Compile Include="Views\LauncherForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="LauncherForm.Designer.cs">
+    <Compile Include="Views\LauncherForm.Designer.cs">
       <DependentUpon>LauncherForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Messages\GithubAuthentication\Authenticate.cs" />
+    <Compile Include="Messages\GithubAuthentication\AuthenticationCancelled.cs" />
+    <Compile Include="Messages\GithubAuthentication\AuthenticationFailed.cs" />
+    <Compile Include="Messages\GithubAuthentication\AuthenticationSuccess.cs" />
+    <Compile Include="Messages\GithubCommander\AbleToAcceptJob.cs" />
+    <Compile Include="Messages\GithubCommander\CanAcceptJob.cs" />
+    <Compile Include="Messages\GithubCommander\UnableToAcceptJob.cs" />
+    <Compile Include="Messages\GithubCoordinator\BeginJob.cs" />
+    <Compile Include="Messages\GithubCoordinator\JobFailed.cs" />
+    <Compile Include="Messages\GithubCoordinator\PublishUpdate.cs" />
+    <Compile Include="Messages\GithubCoordinator\SubscribeToProgressUpdates.cs" />
+    <Compile Include="Messages\GithubRepositoryAnalysis\ProcessRepo.cs" />
+    <Compile Include="Messages\GithubRepositoryAnalysis\RetryableQuery.cs" />
+    <Compile Include="Messages\GithubValidator\InvalidRepo.cs" />
+    <Compile Include="Messages\GithubValidator\RepoIsValid.cs" />
+    <Compile Include="Messages\GithubValidator\SystemBusy.cs" />
+    <Compile Include="Messages\GithubValidator\ValidateRepo.cs" />
+    <Compile Include="Messages\GithubWorker\QueryStarrer.cs" />
+    <Compile Include="Messages\GithubWorker\QueryStarrers.cs" />
+    <Compile Include="Messages\GithubWorker\StarredReposForUser.cs" />
+    <Compile Include="Messages\MainForm\LaunchRepoResultsWindow.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RepoResultsForm.cs">
+    <Compile Include="Views\RepoResultsForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="RepoResultsForm.Designer.cs">
+    <Compile Include="Views\RepoResultsForm.Designer.cs">
       <DependentUpon>RepoResultsForm.cs</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="GithubAuth.resx">
+    <Compile Include="Data\SimilarRepo.cs" />
+    <EmbeddedResource Include="Views\GithubAuth.resx">
       <DependentUpon>GithubAuth.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="LauncherForm.resx">
+    <EmbeddedResource Include="Views\LauncherForm.resx">
       <DependentUpon>LauncherForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -104,7 +127,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="RepoResultsForm.resx">
+    <EmbeddedResource Include="Views\RepoResultsForm.resx">
       <DependentUpon>RepoResultsForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config">
@@ -123,6 +146,7 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,7 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+
 using Akka.Actor;
+
+using GithubActors.Data;
+using GithubActors.Messages.GithubCommander;
+using GithubActors.Messages.GithubValidator;
+
 using Octokit;
+
 
 namespace GithubActors.Actors
 {
@@ -10,61 +18,22 @@ namespace GithubActors.Actors
     /// </summary>
     public class GithubValidatorActor : ReceiveActor
     {
-        #region Messages
-
-        public class ValidateRepo
-        {
-            public ValidateRepo(string repoUri)
-            {
-                RepoUri = repoUri;
-            }
-
-            public string RepoUri { get; private set; }
-        }
-
-        public class InvalidRepo
-        {
-            public InvalidRepo(string repoUri, string reason)
-            {
-                Reason = reason;
-                RepoUri = repoUri;
-            }
-
-            public string RepoUri { get; private set; }
-
-            public string Reason { get; private set; }
-        }
-
-        /// <summary>
-        /// System is unable to process additional repos at this time
-        /// </summary>
-        public class SystemBusy {  }
-
-        /// <summary>
-        /// This is a valid repository
-        /// </summary>
-        public class RepoIsValid
-        {
-            /*
-             * Using singleton pattern here since it's a stateless message.
-             * 
-             * Considered to be a good practice to eliminate unnecessary garbage collection,
-             * and it's used internally inside Akka.NET for similar scenarios.
-             */
-            private RepoIsValid() { }
-            private static readonly RepoIsValid _instance = new RepoIsValid();
-            public static RepoIsValid Instance { get { return _instance; } }
-        }
-
-        #endregion
-
         private readonly IGitHubClient _gitHubClient;
+
 
         public GithubValidatorActor(IGitHubClient gitHubClient)
         {
             _gitHubClient = gitHubClient;
             ReadyToValidate();
         }
+
+
+        public static Tuple<string, string> SplitIntoOwnerAndRepo(string repoUri)
+        {
+            List<string> split = new Uri(repoUri, UriKind.Absolute).PathAndQuery.TrimEnd('/').Split('/').Reverse().ToList(); //uri path without trailing slash
+            return Tuple.Create(split[1], split[0]); //User, Repo
+        }
+
 
         private void ReadyToValidate()
         {
@@ -75,9 +44,9 @@ namespace GithubActors.Actors
             //Repos that at least have a valid absolute URL
             Receive<ValidateRepo>(repo =>
             {
-                var userOwner = SplitIntoOwnerAndRepo(repo.RepoUri);
+                Tuple<string, string> userOwner = SplitIntoOwnerAndRepo(repo.RepoUri);
                 //close over the sender in an instance variable
-                var sender = Sender;
+                IActorRef sender = Sender;
                 _gitHubClient.Repository.Get(userOwner.Item1, userOwner.Item2).ContinueWith<object>(t =>
                 {
                     //Rule #1 of async in Akka.NET - turn exceptions into messages your actor understands
@@ -100,25 +69,16 @@ namespace GithubActors.Actors
 
             // Octokit was able to retrieve this repository
             Receive<Repository>(repository =>
-            {
-                //ask the GithubCommander if we can accept this job
-                Context.ActorSelection(ActorPaths.GithubCommanderActor.Path).Tell(new GithubCommanderActor.CanAcceptJob(new RepoKey(repository.Owner.Login, repository.Name)));
-            });
-
+                Context.ActorSelection(ActorPaths.GithubCommanderActor.Path)
+                    .Tell(new CanAcceptJob(new RepoKey(repository.Owner.Login, repository.Name))));
 
             /* REPO is valid, but can we process it at this time? */
 
             //yes
-            Receive<GithubCommanderActor.UnableToAcceptJob>(job => Context.ActorSelection(ActorPaths.MainFormActor.Path).Tell(job));
-            
-            //no
-            Receive<GithubCommanderActor.AbleToAcceptJob>(job => Context.ActorSelection(ActorPaths.MainFormActor.Path).Tell(job));
-        }
+            Receive<UnableToAcceptJob>(job => Context.ActorSelection(ActorPaths.MainFormActor.Path).Tell(job));
 
-        public static Tuple<string, string> SplitIntoOwnerAndRepo(string repoUri)
-        {
-            var split = new Uri(repoUri, UriKind.Absolute).PathAndQuery.TrimEnd('/').Split('/').Reverse().ToList(); //uri path without trailing slash
-            return Tuple.Create(split[1], split[0]); //User, Repo
+            //no
+            Receive<AbleToAcceptJob>(job => Context.ActorSelection(ActorPaths.MainFormActor.Path).Tell(job));
         }
     }
 }

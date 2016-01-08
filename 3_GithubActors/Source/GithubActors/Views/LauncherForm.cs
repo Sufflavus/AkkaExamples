@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Windows.Forms;
-using Akka.Actor;
-using GithubActors.Actors;
 
-namespace GithubActors
+using Akka.Actor;
+
+using GithubActors.Actors;
+using GithubActors.Messages.GithubRepositoryAnalysis;
+
+
+namespace GithubActors.Views
 {
     public partial class LauncherForm : Form
     {

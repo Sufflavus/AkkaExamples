@@ -1,17 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Akka.Actor;
-using GithubActors.Actors;
 
-namespace GithubActors
+using Akka.Actor;
+
+using GithubActors.Actors;
+using GithubActors.Messages.GithubAuthentication;
+
+
+namespace GithubActors.Views
 {
     public partial class GithubAuth : Form
     {
@@ -41,7 +38,7 @@ namespace GithubActors
 
         private void btnAuthenticate_Click(object sender, EventArgs e)
         {
-            _authActor.Tell(new GithubAuthenticationActor.Authenticate(tbOAuth.Text));
+            _authActor.Tell(new Authenticate(tbOAuth.Text));
         }
     }
 }
